@@ -1,11 +1,13 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly userService: UsersService) {}
+    constructor(private readonly userService: UsersService) { }
 
     @Get()
     async findAll(): Promise<User[]> {
@@ -15,5 +17,11 @@ export class UsersController {
     @Post()
     async create(@Body() createUserDto: CreateUserDto) {
         return this.userService.create(createUserDto);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('profile')
+    getProfile(@CurrentUser() user: User) {
+        return this.userService.findById(user.id);
     }
 }
